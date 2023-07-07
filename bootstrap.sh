@@ -81,9 +81,9 @@ bootstrap_fn() {
           # haven't been generated yet
           # Run the server with a self-signed certificate to solve the chicken/egg
           # problem (since generating the cert requires nginx to be running)
-          ln -s "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/cert.pem" || exit 1
-          ln -s "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/fullchain.pem" || exit 1
-          ln -s "$cert_dir/self_signed_key.pem" "$cert_dir/$domain/key.pem" || exit 1
+          cp "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/cert.pem" || exit 1
+          cp "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/fullchain.pem" || exit 1
+          cp "$cert_dir/self_signed_key.pem" "$cert_dir/$domain/key.pem" || exit 1
       fi
     done
   fi
