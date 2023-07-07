@@ -22,7 +22,7 @@ if [ $? -ne 0 ] || [ "$num_domains" -lt 1 ]; then
   exit 1
 fi
 
-# Install acme.sh with the email in the config
+# Install acme.sh with the email in the config, ensure the account_thumbprint
 if [ ! -d "$acme_dir" ]; then
   email=$(jqc -e -r '.email')
   if [ $? -ne 0 ]; then
@@ -33,7 +33,8 @@ if [ ! -d "$acme_dir" ]; then
   (cd /opt/acme.sh && ./acme.sh --install --home "$acme_dir" --accountemail "$email") || exit 1
 fi
 
-if ! jqc -e '.account_thumbprint' >/dev/null; then
+account_thumbprint=$(jqc -e -r '.account_thumbprint')
+if [ $? -ne 0 ] || [ -z "$account_thumbprint" ]; then
   echo "Registering account with LetsEncrypt"
   le_response=$("$acme" --home "$acme_dir" --server letsencrypt --register-account)
   if [ $? -ne 0 ]; then
@@ -49,6 +50,12 @@ if ! jqc -e '.account_thumbprint' >/dev/null; then
     exit 1
   fi
   echo "$config" > "$config_file"
+fi
+
+
+# Create dhparams
+if [ ! -f "$cert_dir/dhparams.pem" ]; then
+  openssl dhparam -dsaparam -out "$cert_dir/dhparams.pem" 4096 || exit 1
 fi
 
 # Create the self-signed certificates
@@ -82,3 +89,91 @@ if [ ! -f "$cert_dir/self_signed_cert.pem" ]; then
     fi
   done
 fi
+
+# Update the generated nginx.conf template
+cat /dev/null > "$data_dir/nginx_generated.conf"
+i=0
+while [ "$i" -lt "$num_domains" ]; do
+  domain_json=$(jqc -e ".domains[$i]")
+  domain=$(echo "$domain_json" | jq -e -r '.name')
+  if [ $? -ne 0 ]; then
+    echo "Failed to get the name for $domain_json"
+    exit 1
+  fi
+  server_name=$(echo "$domain_json" | jq -e -r '[.name] + .aliases | join(" ")')
+  if [ $? -ne 0 ]; then
+    echo "Failed to get the server names for $domain_json"
+    exit 1
+  fi
+  dest=$(echo "$domain_json" | jq -e -r '.dest')
+  if [ $? -ne 0 ]; then
+    echo "Failed to get the dest for $domain_json"
+    exit 1
+  fi
+  cat << EOF >> "$data_dir/nginx_generated.conf"
+  server {
+    server_name $server_name;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    ssl_certificate $cert_dir/$domain/fullchain.pem;
+    ssl_certificate_key $cert_dir/$domain/key.pem;
+    ssl_trusted_certificate $cert_dir/$domain/fullchain.pem;
+    ssl_dhparam $cert_dir/dhparams.pem;
+
+    ssl_session_cache shared:le_nginx_SSL:10m;
+    ssl_session_timeout 1440m;
+    ssl_session_tickets off;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_session_cache shared:MozSSL:10m;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 9.9.9.9 8.8.8.8;
+    resolver_timeout 5s;
+
+    location ~ ^/\.well-known/acme-challenge/([-_a-zA-Z0-9]+)\$ {
+      default_type text/plain;
+      return 200 "\$1.$account_thumbprint";
+    }
+
+    location / {
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_http_version 1.1;
+      proxy_set_header X-Real-IP \$remote_addr;
+      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Host \$host;
+      proxy_set_header X-Forwarded-Proto \$scheme;
+      proxy_set_header Host \$host;
+      proxy_pass $dest;
+    }
+  }
+
+  server {
+    server_name $server_name;
+    listen 80;
+    listen [::]:80;
+
+    location ~ ^/\.well-known/acme-challenge/([-_a-zA-Z0-9]+)\$ {
+      default_type text/plain;
+      return 200 "\$1.$account_thumbprint";
+    }
+    location / {
+      return 301 https://$domain\$request_uri;
+    }
+  }
+EOF
+  i=$((i+1))
+done
+cat << EOF >> "$data_dir/nginx_generated.conf"
+# Sinkhole server, if the host doesn't match any of the known domains. Kills the connection
+server {
+  server_name _;
+  listen 80 default_server deferred;
+  listen [::]:80 default_server deferred;
+  return 444;
+}
+EOF
