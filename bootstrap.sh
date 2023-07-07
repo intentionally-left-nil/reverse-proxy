@@ -129,7 +129,8 @@ bootstrap_fn() {
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
       ssl_stapling on;
       ssl_stapling_verify on;
-      resolver 9.9.9.9 8.8.8.8;
+      # Try using docker's resolver, then quad 9, then google for DNS resolution
+      resolver 127.0.0.11 9.9.9.9 8.8.8.8;
       resolver_timeout 5s;
 
       location ~ ^/\.well-known/acme-challenge/([-_a-zA-Z0-9]+)\$ {

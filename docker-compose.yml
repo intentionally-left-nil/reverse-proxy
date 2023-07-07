@@ -1,0 +1,26 @@
+services:
+  app:
+    image: 'python:latest'
+    command: python -m http.server -d /var/log 8000
+    networks:
+      - www
+  proxy:
+    build:
+      context: .
+    environment:
+      - BOOTSTRAP=1
+      - OVERWRITE_NGINX_CONF=1
+    volumes:
+      - ./config.json:/etc/reverse_proxy/config.json
+      - reverse-proxy-data:/etc/reverse_proxy/data
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - www
+
+volumes:
+  reverse-proxy-data:
+networks:
+  www:
+    name: reverse-proxy
