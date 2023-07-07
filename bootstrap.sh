@@ -146,7 +146,10 @@ bootstrap_fn() {
         proxy_set_header X-Forwarded-Host \$host;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_set_header Host \$host;
-        proxy_pass $dest;
+        # The DNS record might not exist at startup time
+        # So use a variable to prevent nginx from failing to start
+        set \$proxy_dest_$i $dest;
+        proxy_pass \$proxy_dest_$i;
       }
     }
 
@@ -175,6 +178,10 @@ EOF
     return 444;
   }
 EOF
+
+  if [ ! -f "$data_dir/nginx.conf" ] || [ "${OVERWRITE_NGINX_CONF:-}" = "1" ]; then
+    cp "$data_dir/nginx_generated.conf" "$data_dir/nginx.conf"
+  fi
 }
 
 if [ "${BOOTSTRAP:-}" = "1" ]; then
