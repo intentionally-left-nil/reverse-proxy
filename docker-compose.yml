@@ -7,9 +7,6 @@ services:
   proxy:
     build:
       context: .
-    environment:
-      - BOOTSTRAP=1
-      - OVERWRITE_NGINX_CONF=1
     volumes:
       - ./config.json:/etc/reverse_proxy/config.json
       - reverse-proxy-data:/etc/reverse_proxy/data

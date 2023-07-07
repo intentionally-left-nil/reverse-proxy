@@ -180,14 +180,14 @@ EOF
   }
 EOF
 
-  if [ ! -f "$data_dir/nginx.conf" ] || [ "${OVERWRITE_NGINX_CONF:-}" = "1" ]; then
+  if [ ! -f "$data_dir/nginx.conf" ] && [ ! "${SKIP_WRITE_NGINX_CONF:-}" = "1" ]; then
     cp "$data_dir/nginx_generated.conf" "$data_dir/nginx.conf"
   fi
 }
 
-if [ "${BOOTSTRAP:-}" = "1" ]; then
+if [ "${SKIP_BOOTSTRAP:-}" = "1" ]; then
+  echo "skipping bootstrap stage because BOOTSTRAP environment variable (${BOOTSTRAP:-unset}) is not 1"
+else
   # Run everything in a subshell so we don't pollute the global scope
   (set -u; bootstrap_fn) || exit $?
-else
-  echo "skipping bootstrap stage because BOOTSTRAP environment variable (${BOOTSTRAP:-unset}) is not 1"
 fi
