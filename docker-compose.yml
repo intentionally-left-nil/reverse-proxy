@@ -1,12 +1,6 @@
 services:
-  app:
-    image: 'python:latest'
-    command: python -m http.server -d /var/log 8000
-    networks:
-      - www
   proxy:
-    build:
-      context: .
+    image: ghcr.io/intentionally-left-nil/reverse-proxy:0.0.1
     volumes:
       - ./config.json:/etc/reverse_proxy/config.json
       - reverse-proxy-data:/etc/reverse_proxy/data

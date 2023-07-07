@@ -15,31 +15,12 @@ All you have to do: Provide a config.json that looks like this:
 }
 ```
 
-And then when you run reverse-proxy it will:
-
-1. Automatically generate a nginx.conf file which serves https://example.com and https://www.example.com and forwards the traffic to http://app:8000
-1. Automatically generate a SSL certificate for example.com and www.example.com
-1. Automatically renew the SSL certificate every ~60 days
-1. Redirect HTTP traffic to HTTPS
-
-So. that's basically it :)
-
-# Running the reverse-proxy using Docker-Compose
-
-The container needs 3 things to work properly
-
-1. The config.json file
-1. A mounted volume to /etc/reverse_proxy/data so that SSL certificates are persisted (otherwise you \_will\* get rate-limited by LetsEncrypt)
-1. A docker network to forward the traffic to your other docker containers
-
-Here's an example docker-compose file you can use to start the service properly:
+and then start the service like so:
 
 ```yml
 services:
   reverse-proxy:
-    image:
-    build:
-      context: .
+    image: ghcr.io/intentionally-left-nil/reverse-proxy:0.0.1
     volumes:
       - ./config.json:/etc/reverse_proxy/config.json
       - reverse-proxy-data:/etc/reverse_proxy/data
@@ -56,7 +37,14 @@ networks:
     name: reverse-proxy
 ```
 
-Then, you can create your services (even if they're in a different docker-compose.yml file). You just need to specify the network name to match
+And then when you run reverse-proxy it will:
+
+1. Automatically generate a nginx.conf file which serves https://example.com and https://www.example.com and forwards the traffic to http://app:8000
+1. Automatically generate a SSL certificate for example.com and www.example.com
+1. Automatically renew the SSL certificate every ~60 days
+1. Redirect HTTP traffic to HTTPS
+
+So. that's basically it :)
 
 # Advanced configuration
 
@@ -69,3 +57,21 @@ Then, make the custom changes to my_local_folder/nginx.conf that you want to.
 Finally, tell the reverse-proxy to prefer your nginx.conf instead:
 `docker run --rm -v ./my_local_folder:/etc/reverse_proxy -e SKIP_WRITE_NGINX_CONF=1`
 The `SKIP_WRITE_NGINX_CONF` prevents the code from re-creating nginx.conf from the config
+
+# How it works
+
+This uses the [stateless](https://github.com/acmesh-official/acme.sh/wiki/Stateless-Mode) mode to generate a SSL certificate. Basically, you do a one-time registration flow, which generates an token. Then, you just need to handle the URL `<your_domain>/.well-known/acme-challenge/<random>` and return back `<token>.<random>`.
+
+```
+location ~ ^/\.well-known/acme-challenge/([-_a-zA-Z0-9]+)\$ {
+        default_type text/plain;
+        return 200 "\$1.$account_thumbprint";
+      }
+```
+
+So, all of the devops revolves around making this happen. Some hoops to jump through include:
+
+1. To return the value you need a working webserver. However, you can't run nginx if there are certs missing. So, the code generates a temporary self-signed certificate so that nginx will start
+1. You need to start nginx before running the certs, so the cert generation is done as a cron job
+1. acme.sh uses a different cron job to renew the certs, so we need to make sure nginx is running
+1. To proxy_pass the data to the remote host, the DNS records need to be set. However, if you just start the reverse proxy, then the DNS entries aren't there. So we use the `set $variable` nginx trick to get around it
