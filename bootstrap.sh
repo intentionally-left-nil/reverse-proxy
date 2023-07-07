@@ -163,7 +163,7 @@ bootstrap_fn() {
         return 200 "\$1.$account_thumbprint";
       }
       location / {
-        return 301 https://$domain\$request_uri;
+        return 301 https://\$host\$request_uri;
       }
     }
 EOF
