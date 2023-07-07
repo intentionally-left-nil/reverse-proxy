@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/intentionally-left-nil/reverse-proxy/main/schema.json",
+  "title": "Config",
+  "description": "Configuration needed to control the reverse-proxy service",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Email used to register with acme.sh"
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The domain name to register, e.g. example.com"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Any other subdomains that should share the same cert & redirect to the same location"
+            }
+          },
+          "dest": {
+            "type": "string",
+            "description": "the URL to forward the http traffic to, e.g. http://app:8000",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "name",
+          "dest"
+        ]
+      }
+    }
+  },
+  "required": [
+    "email",
+    "domains"
+  ]
+}
