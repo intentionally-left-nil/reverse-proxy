@@ -71,23 +71,23 @@ bootstrap_fn() {
     -out "$cert_dir/self_signed_cert.pem" \
     -subj "/CN=$subject" \
     -addext "subjectAltName=$alt_names" || exit 1
-
-    domains=$(jq -e -r '.domains[].name' "$config_file")
-    # Note that this script assumes that the config.json is trusted input
-    # and the domain doesn't have e.g. ../../ in it
-    for domain in $domains; do
-      mkdir -p "$cert_dir/$domain" || exit 1
-      if [ ! -f "$cert_dir/$domain/cert.pem" ]; then
-          # This is the first time running the production server, and the prod certs
-          # haven't been generated yet
-          # Run the server with a self-signed certificate to solve the chicken/egg
-          # problem (since generating the cert requires nginx to be running)
-          cp "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/cert.pem" || exit 1
-          cp "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/fullchain.pem" || exit 1
-          cp "$cert_dir/self_signed_key.pem" "$cert_dir/$domain/key.pem" || exit 1
-      fi
-    done
   fi
+
+  domains=$(jq -e -r '.domains[].name' "$config_file")
+  # Note that this script assumes that the config.json is trusted input
+  # and the domain doesn't have e.g. ../../ in it
+  for domain in $domains; do
+    mkdir -p "$cert_dir/$domain" || exit 1
+    if [ ! -f "$cert_dir/$domain/cert.pem" ]; then
+        # This is the first time running the production server, and the prod certs
+        # haven't been generated yet
+        # Run the server with a self-signed certificate to solve the chicken/egg
+        # problem (since generating the cert requires nginx to be running)
+        cp "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/cert.pem" || exit 1
+        cp "$cert_dir/self_signed_cert.pem" "$cert_dir/$domain/fullchain.pem" || exit 1
+        cp "$cert_dir/self_signed_key.pem" "$cert_dir/$domain/key.pem" || exit 1
+    fi
+  done
 
   # Update the generated nginx.conf template
   cat /dev/null > "$data_dir/nginx_generated.conf"
