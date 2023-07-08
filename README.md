@@ -20,7 +20,7 @@ and then start the service like so:
 ```yml
 services:
   reverse-proxy:
-    image: ghcr.io/intentionally-left-nil/reverse-proxy:0.0.1
+    image: ghcr.io/intentionally-left-nil/reverse-proxy:latest
     volumes:
       - ./config.json:/etc/reverse_proxy/config.json
       - reverse-proxy-data:/etc/reverse_proxy/data

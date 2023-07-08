@@ -1,6 +1,6 @@
 services:
   proxy:
-    image: ghcr.io/intentionally-left-nil/reverse-proxy:0.0.1
+    image: ghcr.io/intentionally-left-nil/reverse-proxy:latest
     volumes:
       - ./config.json:/etc/reverse_proxy/config.json
       - reverse-proxy-data:/etc/reverse_proxy/data
