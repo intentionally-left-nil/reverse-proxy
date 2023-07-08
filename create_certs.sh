@@ -32,7 +32,7 @@ set -x -o noglob
     domain_json=$(jq -e ".domains[$i]" "$config_file")
     domain=$(echo "$domain_json" | jq -e -r '.name')
     # column 5 = created_at
-    created_at=$(acme --list | awk '$1 == '"$domain"' {print $5}')
+    created_at=$(acme --list | awk '$1 == "'"$domain"'" {print $5}')
     if [ -z "$created_at" ]; then
       echo "Creating certificate for $domain"
       acme_domain_args=$(echo "$domain_json" | jq -e -r '[.name] + .aliases | map("-d " + .) | join(" ")')

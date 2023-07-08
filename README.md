@@ -60,7 +60,7 @@ The `SKIP_WRITE_NGINX_CONF` prevents the code from re-creating nginx.conf from t
 
 # How it works
 
-This uses the [stateless](https://github.com/acmesh-official/acme.sh/wiki/Stateless-Mode) mode to generate a SSL certificate. Basically, you do a one-time registration flow, which generates an token. Then, you just need to handle the URL `<your_domain>/.well-known/acme-challenge/<random>` and return back `<token>.<random>`.
+This uses the [stateless](https://github.com/acmesh-official/acme.sh/wiki/Stateless-Mode) mode to generate a SSL certificate. Basically, you do a one-time registration flow, which generates a token. Then, you just need to handle the URL `<your_domain>/.well-known/acme-challenge/<random>` and return back `<token>.<random>`.
 
 ```
 location ~ ^/\.well-known/acme-challenge/([-_a-zA-Z0-9]+)\$ {
