@@ -129,9 +129,13 @@ bootstrap_fn() {
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
       ssl_stapling on;
       ssl_stapling_verify on;
-      # Try using docker's resolver, then quad 9, then google for DNS resolution
-      resolver 127.0.0.11 9.9.9.9 8.8.8.8;
-      resolver_timeout 5s;
+      # Use docker's resolver for name resolution, see https://prds98.com/post/49/
+      # Originally this tried to also use 9.9.9.9 as a backup, but the resolver directive
+      # is in round-robin fashion, leading to intermittent failures resolving internal routes
+      # https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver
+      # The TL;DR: is that this config can only be run under a docker container, and would need tweaking to run somewhere else
+      resolver 127.0.0.11 valid=30s ipv6=off;
+      resolver_timeout 10s;
 
       location ~ ^/\.well-known/acme-challenge/([-_a-zA-Z0-9]+)\$ {
         default_type text/plain;
