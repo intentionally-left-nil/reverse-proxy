@@ -6,6 +6,7 @@ bootstrap_fn() {
   acme_dir="$data_dir/.acme.sh"
   cert_dir="$data_dir/certs"
   config_file="/etc/reverse_proxy/config.json"
+  nginx_file="/etc/reverse_proxy/nginx.conf"
   acme="$acme_dir/acme.sh"
 
   if [ ! -d "$data_dir" ]; then 
@@ -184,8 +185,8 @@ EOF
   }
 EOF
 
-  if [ ! -f "$data_dir/nginx.conf" ] && [ ! "${SKIP_WRITE_NGINX_CONF:-}" = "1" ]; then
-    cp "$data_dir/nginx_generated.conf" "$data_dir/nginx.conf"
+  if [ ! -f "$nginx_file" ] || [ ! "${SKIP_WRITE_NGINX_CONF:-}" = "1" ]; then
+    cp "$data_dir/nginx_generated.conf" "$nginx_file"
   fi
 }
 

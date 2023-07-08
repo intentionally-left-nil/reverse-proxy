@@ -54,8 +54,17 @@ First, run the docker container, which will generate the nginx.conf (even when r
 
 Then, make the custom changes to my_local_folder/nginx.conf that you want to.
 
-Finally, tell the reverse-proxy to prefer your nginx.conf instead:
-`docker run --rm -v ./my_local_folder:/etc/reverse_proxy -e SKIP_WRITE_NGINX_CONF=1`
+Finally, merge these config lines with your existing docker-compose.yml file
+
+```yml
+services:
+  reverse-proxy:
+    volumes:
+      - ./my_nginx.conf:/etc/reverse_proxy/nginx.conf
+    environment:
+      - SKIP_WRITE_NGINX_CONF=1
+```
+
 The `SKIP_WRITE_NGINX_CONF` prevents the code from re-creating nginx.conf from the config
 
 # How it works
