@@ -1,14 +1,14 @@
 #! /bin/sh
 # shellcheck disable=SC2181
 
-set -x -o noglob
+set -x -u -o noglob
 {
   if [ "${SKIP_CREATE_CERTS:-}" = "1" ]; then
     echo "SKIP_CREATE_CERTS is set. Uninstalling the cron job without doing anything"
     crontab -l | grep -v 'create_certs' | crontab -
     exit 0
   fi
-  
+
   data_dir=/etc/reverse_proxy/data
   acme_dir="$data_dir/.acme.sh"
   cert_dir="$data_dir/certs"
