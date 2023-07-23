@@ -2,6 +2,7 @@
 # shellcheck disable=SC2181
 
 bootstrap_fn() {
+  set -x
   data_dir=/etc/reverse_proxy/data
   acme_dir="$data_dir/.acme.sh"
   cert_dir="$data_dir/certs"
@@ -186,7 +187,10 @@ EOF
 EOF
 
   if [ ! -f "$nginx_file" ] || [ ! "${SKIP_WRITE_NGINX_CONF:-}" = "1" ]; then
+    echo "Writing nginx_generated.conf to $nginx_file"
     cp "$data_dir/nginx_generated.conf" "$nginx_file"
+  else
+    echo "Skipping writing nginx_generated.conf"
   fi
 }
 
