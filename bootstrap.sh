@@ -2,7 +2,9 @@
 # shellcheck disable=SC2181
 
 bootstrap_fn() {
-  set -x
+  if [ "${DEBUG:-}" = '1' ]; then
+    set -x
+  fi
   data_dir=/etc/reverse_proxy/data
   acme_dir="$data_dir/.acme.sh"
   cert_dir="$data_dir/certs"

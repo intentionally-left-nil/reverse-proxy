@@ -1,7 +1,9 @@
 #! /bin/sh
 
 init_fn() {
-  set -x
+  if [ "${DEBUG:-}" = '1' ]; then
+    set -x
+  fi
   data_dir=/etc/reverse_proxy/data
   acme_dir="$data_dir/.acme.sh"
   nginx_file="/etc/reverse_proxy/nginx.conf"

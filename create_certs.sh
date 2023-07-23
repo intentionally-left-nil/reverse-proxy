@@ -1,7 +1,11 @@
 #! /bin/sh
 # shellcheck disable=SC2181
 
-set -x -u -o noglob
+set -u -o noglob
+if [ "${DEBUG:-}" = '1' ]; then
+  set -x
+fi
+
 {
   if [ "${SKIP_CREATE_CERTS:-}" = "1" ]; then
     echo "SKIP_CREATE_CERTS is set. Uninstalling the cron job without doing anything"
