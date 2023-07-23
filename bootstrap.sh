@@ -187,8 +187,8 @@ EOF
 EOF
 
   if [ ! -f "$nginx_file" ] || [ ! "${SKIP_WRITE_NGINX_CONF:-}" = "1" ]; then
-    echo "Writing nginx_generated.conf to $nginx_file"
-    cp "$data_dir/nginx_generated.conf" "$nginx_file"
+    cp "$data_dir/nginx_generated.conf" "$nginx_file" || exit 1
+    echo "Wrote nginx_generated.conf to $nginx_file"
   else
     echo "Skipping writing nginx_generated.conf"
   fi
