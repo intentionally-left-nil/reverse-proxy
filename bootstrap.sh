@@ -159,6 +159,8 @@ bootstrap_fn() {
         # So use a variable to prevent nginx from failing to start
         set \$proxy_dest_$i $dest;
         proxy_pass \$proxy_dest_$i;
+        # increase the default upload limit from 5m->50m
+        client_max_body_size 50m;
       }
     }
 
