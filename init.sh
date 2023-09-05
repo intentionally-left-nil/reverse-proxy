@@ -18,8 +18,12 @@ init_fn() {
   cp "$nginx_file" /etc/nginx/conf.d/default.conf || exit 1
   # Add the cron job to create the initial certificates
   (crontab -l; echo "* * * * * /etc/reverse_proxy/create_certs.sh") | sort -u | crontab -
-  # Add the cron job to renew the certificates
-  acme --install-cronjob
+  if [ "${SKIP_RENEW_CERTS:-}" = "1" ]; then
+    echo "Skipping acme --install-cronjob due to SKIP_RENEW_CERTS"
+  else
+    # Add the cron job to renew the certificates
+    acme --install-cronjob
+  fi
 }
 
 (set -u; init_fn) || exit $?

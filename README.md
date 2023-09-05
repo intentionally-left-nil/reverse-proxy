@@ -48,10 +48,11 @@ So. that's basically it :)
 
 # Environment variables
 
-- `SKIP_BOOTSTRAP=1` means don't create any config files, or self-signed certs
-- `SKIP_CREATE_CERTS=1` means don't call acme --issue to generate the SSL certificates
-- `SKIP_WRITE_NGINX_CONF=1` means that /etc/reverse_proxy/nginx.conf is not overriden during the config process
-- `DEBUG=1` means add verbose logging (set -x) to figure out what's going wrong
+- `SKIP_BOOTSTRAP=1` - don't create any config files, or self-signed certs
+- `SKIP_CREATE_CERTS=1` - don't call acme --issue to generate the SSL certificates
+- `SKIP_RENEW_CERTS=1` - don't call acme --install-cronjob to renew the certificates
+- `SKIP_WRITE_NGINX_CONF=1` - that /etc/reverse_proxy/nginx.conf is not overriden during the config process
+- `DEBUG=1` - add verbose logging (set -x) to figure out what's going wrong
 
 # Advanced configuration
 
@@ -91,3 +92,9 @@ So, all of the devops revolves around making this happen. Some hoops to jump thr
 1. You need to start nginx before running the certs, so the cert generation is done as a cron job
 1. acme.sh uses a different cron job to renew the certs, so we need to make sure nginx is running
 1. To proxy_pass the data to the remote host, the DNS records need to be set. However, if you just start the reverse proxy, then the DNS entries aren't there. So we use the `set $variable` nginx trick to get around it
+
+# Testing
+
+1. cd [./test](./test/)
+1. sudo docker compose up --build
+1. curl -k https://localhost
