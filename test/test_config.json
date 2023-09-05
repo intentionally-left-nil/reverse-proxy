@@ -1,0 +1,9 @@
+{
+  "email": "test@example.com",
+  "domains": [
+    {
+      "name": "localhost",
+      "dest": "http://hello:80"
+    }
+  ]
+}

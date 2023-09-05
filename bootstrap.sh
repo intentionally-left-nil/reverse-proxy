@@ -29,28 +29,37 @@ bootstrap_fn() {
     exit 1
   fi
 
-  # Install acme.sh with the email in the config, ensure the account_thumbprint
-  if [ ! -d "$acme_dir" ]; then
-    email=$(jq -e -r '.email' "$config_file")
-    if [ $? -ne 0 ]; then
-      echo "$config_file is missing the email to use when registering the SSL certificates"
-      exit 1
-    fi
-    echo "Installing acme.sh"
-    (cd /opt/acme.sh && ./acme.sh --install --home "$acme_dir" --accountemail "$email") || exit 1
-  fi
 
-  account_thumbprint=$(cat "$data_dir/account_thumbprint")
-  if [ $? -ne 0 ] || [ -z "$account_thumbprint" ]; then
-    echo "Registering account with LetsEncrypt"
-    le_response=$("$acme" --home "$acme_dir" --server letsencrypt --register-account)
-    if [ $? -ne 0 ]; then
-      echo "Failed to register the acme account"
-      echo "$le_response"
-      exit 1
+  if [ "${SKIP_CREATE_CERTS:-}" = "1" ]; then
+    account_thumbprint=$(cat "$data_dir/account_thumbprint")
+    if [ $? -ne 0 ] || [ -z "$account_thumbprint" ]; then
+      echo "Warning: SKIP_CREATE_CERTS is TRUE but there is no $data_dir/account_thumbprint"
+      account_thumbprint="MISSING_ACCOUNT_THUMBPRINT"
     fi
-    account_thumbprint=$(echo "$le_response" | grep ACCOUNT_THUMBPRINT | sed "s/.*ACCOUNT_THUMBPRINT='\(.*\)'/\1/")
-    echo "$account_thumbprint" > "$data_dir/account_thumbprint" || exit 1
+  else
+    # Install acme.sh with the email in the config, ensure the account_thumbprint
+    if [ ! -d "$acme_dir" ]; then
+      email=$(jq -e -r '.email' "$config_file")
+      if [ $? -ne 0 ]; then
+        echo "$config_file is missing the email to use when registering the SSL certificates"
+        exit 1
+      fi
+      echo "Installing acme.sh"
+      (cd /opt/acme.sh && ./acme.sh --install --home "$acme_dir" --accountemail "$email") || exit 1
+    fi
+
+    account_thumbprint=$(cat "$data_dir/account_thumbprint")
+    if [ $? -ne 0 ] || [ -z "$account_thumbprint" ]; then
+      echo "Registering account with LetsEncrypt"
+      le_response=$("$acme" --home "$acme_dir" --server letsencrypt --register-account)
+      if [ $? -ne 0 ]; then
+        echo "Failed to register the acme account"
+        echo "$le_response"
+        exit 1
+      fi
+      account_thumbprint=$(echo "$le_response" | grep ACCOUNT_THUMBPRINT | sed "s/.*ACCOUNT_THUMBPRINT='\(.*\)'/\1/")
+      echo "$account_thumbprint" > "$data_dir/account_thumbprint" || exit 1
+    fi
   fi
 
   mkdir -p "$cert_dir" || exit 1

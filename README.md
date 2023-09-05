@@ -91,3 +91,9 @@ So, all of the devops revolves around making this happen. Some hoops to jump thr
 1. You need to start nginx before running the certs, so the cert generation is done as a cron job
 1. acme.sh uses a different cron job to renew the certs, so we need to make sure nginx is running
 1. To proxy_pass the data to the remote host, the DNS records need to be set. However, if you just start the reverse proxy, then the DNS entries aren't there. So we use the `set $variable` nginx trick to get around it
+
+# Testing
+
+1. cd [./test](./test/)
+1. sudo docker compose up --build
+1. curl -k https://localhost
