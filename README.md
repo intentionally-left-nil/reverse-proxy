@@ -48,10 +48,11 @@ So. that's basically it :)
 
 # Environment variables
 
-- `SKIP_BOOTSTRAP=1` means don't create any config files, or self-signed certs
-- `SKIP_CREATE_CERTS=1` means don't call acme --issue to generate the SSL certificates
-- `SKIP_WRITE_NGINX_CONF=1` means that /etc/reverse_proxy/nginx.conf is not overriden during the config process
-- `DEBUG=1` means add verbose logging (set -x) to figure out what's going wrong
+- `SKIP_BOOTSTRAP=1` - don't create any config files, or self-signed certs
+- `SKIP_CREATE_CERTS=1` - don't call acme --issue to generate the SSL certificates
+- `SKIP_RENEW_CERTS=1` - don't call acme --install-cronjob to renew the certificates
+- `SKIP_WRITE_NGINX_CONF=1` - that /etc/reverse_proxy/nginx.conf is not overriden during the config process
+- `DEBUG=1` - add verbose logging (set -x) to figure out what's going wrong
 
 # Advanced configuration
 

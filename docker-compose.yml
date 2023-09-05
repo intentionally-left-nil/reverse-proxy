@@ -9,6 +9,11 @@ services:
       - 443:443
     networks:
       - www
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -so /dev/null http://localhost/ || exit 1']
+      timeout: 5s
+      interval: 5s
+      retries: 6
 
 volumes:
   reverse-proxy-data:

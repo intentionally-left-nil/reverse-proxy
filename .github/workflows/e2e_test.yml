@@ -1,0 +1,54 @@
+name: End to End tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run test server
+        working-directory: ./test
+        run: docker compose up --build --detach --wait --wait-timeout 30
+      - name: querying http returns redirect
+        run: |
+          output=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
+          ret="$?"
+          echo "$output"
+          if [ "$ret" -ne 0 ]; then
+            exit "$ret"
+          fi
+          if [ "$output" != "301" ]; then
+            exit 42
+          fi
+      - name: querying acme-challenge returns the key
+        run: |
+          output=$(curl -s http://localhost/.well-known/acme-challenge/abc)
+          ret="$?"
+          echo "$output"
+          if [ "$ret" -ne 0 ]; then
+            exit "$ret"
+          fi
+          if [ "$output" != "abc.MISSING_ACCOUNT_THUMBPRINT" ]; then
+            exit 42
+          fi
+      - name: Copy the SSL key
+        working-directory: ./test
+        run: docker compose cp proxy:/etc/reverse_proxy/data/certs/localhost/fullchain.pem .
+      - name: Querying the https route returns 200
+        working-directory: ./test
+        run: |
+          output=$(curl -s -o /dev/null -w "%{http_code}" --cacert fullchain.pem https://localhost)
+          ret="$?"
+          echo "$output"
+          if [ "$ret" -ne 0 ]; then
+            exit "$ret"
+          fi
+          if [ "$output" != "200" ]; then
+            exit 42
+          fi
