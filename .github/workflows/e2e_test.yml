@@ -52,3 +52,15 @@ jobs:
           if [ "$output" != "200" ]; then
             exit 42
           fi
+      - name: Make sure that http2 is supported
+        working-directory: ./test
+        run: |
+          output=$(curl -s -o /dev/null -w "%{http_version}" --cacert fullchain.pem https://localhost)
+          ret="$?"
+          echo "$output"
+          if [ "$ret" -ne 0 ]; then
+            exit "$ret"
+          fi
+          if [ "$output" != "2" ]; then
+            exit 42
+          fi
