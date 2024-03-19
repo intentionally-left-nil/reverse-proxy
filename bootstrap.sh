@@ -124,8 +124,8 @@ bootstrap_fn() {
     cat << EOF >> "$data_dir/nginx_generated.conf"
     server {
       server_name $server_name;
-      listen 443 ssl http2;
-      listen [::]:443 ssl http2;
+      listen 443 ssl;
+      listen [::]:443 ssl;
       http2 on;
       ssl_certificate $cert_dir/$domain/fullchain.pem;
       ssl_certificate_key $cert_dir/$domain/key.pem;
