@@ -43,7 +43,7 @@ jobs:
           fi
       - name: Copy the SSL key
         working-directory: ./test
-        run: docker compose --profile ${{matrix.profile}} cp proxy:/etc/reverse_proxy/data/certs/localhost/fullchain.pem .
+        run: docker compose --profile ${{matrix.profile}} cp ${{matrix.profile}}:/etc/reverse_proxy/data/certs/localhost/fullchain.pem .
       - name: Querying the https route returns 200
         working-directory: ./test
         run: |
