@@ -8,13 +8,17 @@ on:
 
 jobs:
   test:
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: ["proxy", "proxy2"]
     name: Test
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v3
       - name: Run test server
         working-directory: ./test
-        run: docker compose up --build --detach --wait --wait-timeout 30
+        run: docker compose --profile ${{matrix.profile}} up --build --detach --wait --wait-timeout 60
       - name: querying http returns redirect
         run: |
           output=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
@@ -39,7 +43,7 @@ jobs:
           fi
       - name: Copy the SSL key
         working-directory: ./test
-        run: docker compose cp proxy:/etc/reverse_proxy/data/certs/localhost/fullchain.pem .
+        run: docker compose --profile ${{matrix.profile}} cp ${{matrix.profile}}:/etc/reverse_proxy/data/certs/localhost/fullchain.pem .
       - name: Querying the https route returns 200
         working-directory: ./test
         run: |
