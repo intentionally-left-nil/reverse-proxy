@@ -17,7 +17,7 @@ bootstrap_fn() {
     exit 1
   fi
 
-  if [ -z "$CONFIG_JSON" ]; then
+  if [ -z "${CONFIG_JSON:-}" ]; then
     if [ -f "$config_file" ]; then
       CONFIG_JSON=$(cat "$config_file")
     else
