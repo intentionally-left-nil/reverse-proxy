@@ -53,6 +53,7 @@ So. that's basically it :)
 - `SKIP_RENEW_CERTS=1` - don't call acme --install-cronjob to renew the certificates
 - `SKIP_WRITE_NGINX_CONF=1` - that /etc/reverse_proxy/nginx.conf is not overriden during the config process
 - `DEBUG=1` - add verbose logging (set -x) to figure out what's going wrong
+- `CONFIG_JSON={...}` - Instead of using a config.json file, you can instead set it as an environment variable instead
 
 # Advanced configuration
 
@@ -96,5 +97,5 @@ So, all of the devops revolves around making this happen. Some hoops to jump thr
 # Testing
 
 1. cd [./test](./test/)
-1. sudo docker compose up --build
+1. sudo docker compose up --build --profile proxy
 1. curl -k https://localhost

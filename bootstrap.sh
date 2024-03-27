@@ -17,13 +17,22 @@ bootstrap_fn() {
     exit 1
   fi
 
-  # First, validate the config file
-  if [ ! -f "$config_file" ]; then
-    echo "Missing $config_file. Did you forget to mount the config file?"
+  if [ -z "$CONFIG_JSON" ]; then
+    if [ -f "$config_file" ]; then
+      CONFIG_JSON=$(cat "$config_file")
+    else
+      echo "Missing $config_file. Did you forget to mount the config file?"
+      exit 1
+    fi
+  fi
+
+  echo "$CONFIG_JSON" | jq empty 2>/dev/null
+  if [ $? -ne 0 ]; then
+    echo "Failed to parse the config file"
     exit 1
   fi
 
-  num_domains=$(jq -e -r '.domains | length' "$config_file")
+  num_domains=$(echo "$CONFIG_JSON" | jq -e -r '.domains | length')
   if [ $? -ne 0 ] || [ "$num_domains" -lt 1 ]; then
     echo "No domains listed in the config"
     exit 1
@@ -39,9 +48,9 @@ bootstrap_fn() {
   else
     # Install acme.sh with the email in the config, ensure the account_thumbprint
     if [ ! -d "$acme_dir" ]; then
-      email=$(jq -e -r '.email' "$config_file")
+      email=$(echo "$CONFIG_JSON" | jq -e -r '.email')
       if [ $? -ne 0 ]; then
-        echo "$config_file is missing the email to use when registering the SSL certificates"
+        echo "The config is missing the email to use when registering the SSL certificates"
         exit 1
       fi
       echo "Installing acme.sh"
@@ -74,8 +83,8 @@ bootstrap_fn() {
     echo "Creating the self-signed certificate"
 
     mkdir -p "$cert_dir" || exit 1
-    subject=$(jq -e -r '.domains[0].name' "$config_file")
-    alt_names=$(jq -e -r '.domains | map([.name] + .aliases) | flatten | map("DNS:" + .) | join(",")' "$config_file")
+    subject=$(echo "$CONFIG_JSON" | jq -e -r '.domains[0].name')
+    alt_names=$(echo "$CONFIG_JSON" | jq -e -r '.domains | map([.name] + .aliases) | flatten | map("DNS:" + .) | join(",")')
     echo "subject: $subject"
     echo "alt_names: $alt_names"
     openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
@@ -85,7 +94,7 @@ bootstrap_fn() {
     -addext "subjectAltName=$alt_names" || exit 1
   fi
 
-  domains=$(jq -e -r '.domains[].name' "$config_file")
+  domains=$(echo "$CONFIG_JSON" | jq -e -r '.domains[].name')
   # Note that this script assumes that the config.json is trusted input
   # and the domain doesn't have e.g. ../../ in it
   for domain in $domains; do
@@ -105,7 +114,7 @@ bootstrap_fn() {
   cat /dev/null > "$data_dir/nginx_generated.conf"
   i=0
   while [ "$i" -lt "$num_domains" ]; do
-    domain_json=$(jq -e ".domains[$i]" "$config_file")
+    domain_json=$(echo "$CONFIG_JSON" | jq -e ".domains[$i]")
     domain=$(echo "$domain_json" | jq -e -r '.name')
     if [ $? -ne 0 ]; then
       echo "Failed to get the name for $domain_json"

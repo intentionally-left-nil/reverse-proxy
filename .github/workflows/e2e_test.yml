@@ -8,13 +8,16 @@ on:
 
 jobs:
   test:
+    strategy:
+      matrix:
+        profile: ["proxy", "proxy2"]
     name: Test
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v3
       - name: Run test server
         working-directory: ./test
-        run: docker compose up --build --detach --wait --wait-timeout 30
+        run: docker compose up --build --detach --wait --profile ${{matrix.profile}} --wait-timeout 30
       - name: querying http returns redirect
         run: |
           output=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
