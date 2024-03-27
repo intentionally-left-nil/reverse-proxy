@@ -1,5 +1,7 @@
 services:
   proxy:
+    profiles:
+      - proxy
     build:
       context: ./reverse-proxy
     volumes:
@@ -19,8 +21,34 @@ services:
       timeout: 5s
       interval: 5s
       retries: 6
+  proxy2:
+    profiles:
+      - proxy2
+    build:
+      context: ./reverse-proxy
+    volumes:
+      - reverse-proxy-test:/etc/reverse_proxy/data
+    environment:
+      - SKIP_CREATE_CERTS=1
+      - SKIP_RENEW_CERTS=1
+      - DEBUG=1
+      - 'CONFIG_JSON={ "email": "test@example.com", "domains": [ { "name": "localhost", "dest": "http://hello:80" } ] }'
+
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - web
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -so /dev/null http://localhost/ || exit 1']
+      timeout: 5s
+      interval: 5s
+      retries: 6
 
   hello:
+    profiles:
+      - proxy
+      - proxy2
     image: nginxdemos/hello:plain-text
     networks:
       - web

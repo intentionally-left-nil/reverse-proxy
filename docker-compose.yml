@@ -1,7 +1,5 @@
 services:
   proxy:
-    profiles:
-      - proxy
     image: ghcr.io/intentionally-left-nil/reverse-proxy:latest
     volumes:
       - ./config.json:/etc/reverse_proxy/config.json
@@ -17,29 +15,8 @@ services:
       interval: 5s
       retries: 6
 
-  proxy2:
-    image: ghcr.io/intentionally-left-nil/reverse-proxy:latest
-    profiles:
-      - proxy2
-    volumes:
-      - reverse-proxy-data2:/etc/reverse_proxy/data
-    environment:
-      - 'CONFIG_JSON={"email": "anil+acme@terminal.space","domains": [{"name": "pet.tax","aliases": ["www.pet.tax"],"dest": "http://pet_tax:8000"}]}'
-
-    ports:
-      - 80:80
-      - 443:443
-    networks:
-      - www
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -so /dev/null http://localhost/ || exit 1']
-      timeout: 5s
-      interval: 5s
-      retries: 6
-
 volumes:
   reverse-proxy-data:
-  reverse-proxy-data2:
 networks:
   www:
     name: reverse-proxy

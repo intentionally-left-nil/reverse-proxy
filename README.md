@@ -97,5 +97,5 @@ So, all of the devops revolves around making this happen. Some hoops to jump thr
 # Testing
 
 1. cd [./test](./test/)
-1. sudo docker compose up --build --profile proxy
+1. sudo docker compose up --build
 1. curl -k https://localhost
