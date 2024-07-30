@@ -99,3 +99,6 @@ So, all of the devops revolves around making this happen. Some hoops to jump thr
 1. cd [./test](./test/)
 1. sudo docker compose up --build
 1. curl -k https://localhost
+
+# Last updated
+The docker image was last updated July 29, 2024
