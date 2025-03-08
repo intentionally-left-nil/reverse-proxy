@@ -1,5 +1,5 @@
 FROM nginx:mainline-alpine
-ARG acme_version=3.0.9
+ARG acme_version=3.1.0
 
 RUN apk update && apk add --no-cache curl openssl jq git
 RUN git clone --depth 1 --branch "$acme_version" https://github.com/acmesh-official/acme.sh.git /opt/acme.sh
