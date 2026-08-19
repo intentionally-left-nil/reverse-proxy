@@ -15,7 +15,7 @@ jobs:
     name: Test
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Run test server
         working-directory: ./test
         run: docker compose --profile ${{matrix.profile}} up --build --detach --wait --wait-timeout 60
