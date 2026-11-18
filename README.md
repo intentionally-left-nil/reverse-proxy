@@ -101,4 +101,4 @@ So, all of the devops revolves around making this happen. Some hoops to jump thr
 1. curl -k https://localhost
 
 # Last updated
-The docker image was last updated July 29, 2024
+The docker image was last updated November 18, 2026 (nginx 1.31.9, which fixes the [nginx2root](https://www.sophos.com/en-us/security-advisories/sophos-sa-20261118-nginx2root) vulnerabilities, and acme.sh 3.1.6)
